@@ -1,0 +1,221 @@
+{
+  "database": "BD_Vendas",
+  "tables": [
+    {
+      "name": "Categoria",
+      "columns": [
+        {"name": "idCategoria", "type": "INT", "notNull": true},
+        {"name": "Descricao", "type": "VARCHAR(45)", "notNull": true}
+      ],
+      "primaryKey": ["idCategoria"],
+      "engine": "InnoDB"
+    },
+    {
+      "name": "Produto",
+      "columns": [
+        {"name": "idProduto", "type": "INT", "notNull": true},
+        {"name": "Nome", "type": "VARCHAR(45)", "notNull": true},
+        {"name": "Descricao", "type": "VARCHAR(200)"},
+        {"name": "Preco", "type": "DECIMAL(18,2)", "notNull": true, "default": "0"},
+        {"name": "QuantEstoque", "type": "DECIMAL(10,2)", "notNull": true, "default": "0"},
+        {"name": "Categoria_idCategoria", "type": "INT", "notNull": true}
+      ],
+      "primaryKey": ["idProduto"],
+      "foreignKeys": [
+        {
+          "name": "fk_Produto_Categoria",
+          "columns": ["Categoria_idCategoria"],
+          "references": {
+            "table": "Categoria",
+            "columns": ["idCategoria"],
+            "onDelete": "NO ACTION",
+            "onUpdate": "NO ACTION"
+          }
+        }
+      ],
+      "engine": "InnoDB"
+    },
+    {
+      "name": "TipoCliente",
+      "columns": [
+        {"name": "idTipoCliente", "type": "INT", "notNull": true},
+        {"name": "Descricao", "type": "VARCHAR(45)"}
+      ],
+      "primaryKey": ["idTipoCliente"],
+      "engine": "InnoDB"
+    },
+    {
+      "name": "Cliente",
+      "columns": [
+        {"name": "idCliente", "type": "INT", "notNull": true},
+        {"name": "Nome", "type": "VARCHAR(45)", "notNull": true},
+        {"name": "Email", "type": "VARCHAR(100)", "notNull": true},
+        {"name": "Nascimento", "type": "DATETIME"},
+        {"name": "Senha", "type": "VARCHAR(200)"},
+        {"name": "TipoCliente_idTipoCliente", "type": "INT", "notNull": true},
+        {"name": "DataRegistro", "type": "DATETIME", "notNull": true, "default": "Now()"}
+      ],
+      "primaryKey": ["idCliente"],
+      "foreignKeys": [
+        {
+          "name": "fk_Cliente_TipoCliente",
+          "columns": ["TipoCliente_idTipoCliente"],
+          "references": {
+            "table": "TipoCliente",
+            "columns": ["idTipoCliente"],
+            "onDelete": "NO ACTION",
+            "onUpdate": "NO ACTION"
+          }
+        }
+      ],
+      "engine": "InnoDB"
+    },
+    {
+      "name": "TipoEndereco",
+      "columns": [
+        {"name": "idTipoEndereco", "type": "INT", "notNull": true},
+        {"name": "Descricao", "type": "VARCHAR(45)", "notNull": true}
+      ],
+      "primaryKey": ["idTipoEndereco"],
+      "engine": "InnoDB"
+    },
+    {
+      "name": "Endereco",
+      "columns": [
+        {"name": "idEndereco", "type": "INT", "notNull": true},
+        {"name": "EnderecoPadrao", "type": "TINYINT", "notNull": true, "default": "0"},
+        {"name": "Logradouro", "type": "VARCHAR(45)"},
+        {"name": "Numero", "type": "VARCHAR(45)"},
+        {"name": "Complemento", "type": "VARCHAR(45)"},
+        {"name": "Bairro", "type": "VARCHAR(45)"},
+        {"name": "Cidade", "type": "VARCHAR(45)"},
+        {"name": "UF", "type": "VARCHAR(2)"},
+        {"name": "CEP", "type": "VARCHAR(8)"},
+        {"name": "TipoEndereco_idTipoEndereco", "type": "INT", "notNull": true},
+        {"name": "Cliente_idCliente", "type": "INT", "notNull": true}
+      ],
+      "primaryKey": ["idEndereco"],
+      "foreignKeys": [
+        {
+          "name": "fk_Endereco_TipoEndereco",
+          "columns": ["TipoEndereco_idTipoEndereco"],
+          "references": {
+            "table": "TipoEndereco",
+            "columns": ["idTipoEndereco"],
+            "onDelete": "NO ACTION",
+            "onUpdate": "NO ACTION"
+          }
+        },
+        {
+          "name": "fk_Endereco_Cliente",
+          "columns": ["Cliente_idCliente"],
+          "references": {
+            "table": "Cliente",
+            "columns": ["idCliente"],
+            "onDelete": "NO ACTION",
+            "onUpdate": "NO ACTION"
+          }
+        }
+      ],
+      "engine": "InnoDB"
+    },
+    {
+      "name": "Telefone",
+      "columns": [
+        {"name": "Numero", "type": "VARCHAR(42)", "notNull": true},
+        {"name": "Cliente_idCliente", "type": "INT", "notNull": true}
+      ],
+      "primaryKey": ["Numero", "Cliente_idCliente"],
+      "foreignKeys": [
+        {
+          "name": "fk_Telefone_Cliente",
+          "columns": ["Cliente_idCliente"],
+          "references": {
+            "table": "Cliente",
+            "columns": ["idCliente"],
+            "onDelete": "NO ACTION",
+            "onUpdate": "NO ACTION"
+          }
+        }
+      ],
+      "engine": "InnoDB"
+    },
+    {
+      "name": "Status",
+      "columns": [
+        {"name": "idStatus", "type": "INT", "notNull": true},
+        {"name": "Descricao", "type": "VARCHAR(45)", "notNull": true}
+      ],
+      "primaryKey": ["idStatus"],
+      "engine": "InnoDB"
+    },
+    {
+      "name": "Pedido",
+      "columns": [
+        {"name": "idPedido", "type": "INT", "notNull": true},
+        {"name": "Status_idStatus", "type": "INT", "notNull": true},
+        {"name": "DataPedido", "type": "DATETIME", "notNull": true, "default": "Now()"},
+        {"name": "ValorTotalPedido", "type": "DECIMAL(18,2)", "notNull": true, "default": "0"},
+        {"name": "Cliente_idCliente", "type": "INT", "notNull": true}
+      ],
+      "primaryKey": ["idPedido"],
+      "foreignKeys": [
+        {
+          "name": "fk_Pedido_Status",
+          "columns": ["Status_idStatus"],
+          "references": {
+            "table": "Status",
+            "columns": ["idStatus"],
+            "onDelete": "NO ACTION",
+            "onUpdate": "NO ACTION"
+          }
+        },
+        {
+          "name": "fk_Pedido_Cliente",
+          "columns": ["Cliente_idCliente"],
+          "references": {
+            "table": "Cliente",
+            "columns": ["idCliente"],
+            "onDelete": "NO ACTION",
+            "onUpdate": "NO ACTION"
+          }
+        }
+      ],
+      "engine": "InnoDB"
+    },
+    {
+      "name": "Pedido_has_Produto",
+      "columns": [
+        {"name": "idPedidoProduto", "type": "INT", "notNull": true, "autoIncrement": true},
+        {"name": "Pedido_idPedido", "type": "INT", "notNull": true},
+        {"name": "Produto_idProduto", "type": "INT", "notNull": true},
+        {"name": "Quantidade", "type": "DECIMAL(10,2)", "notNull": true},
+        {"name": "PrecoUnitario", "type": "DECIMAL(18,2)", "notNull": true}
+      ],
+      "primaryKey": ["idPedidoProduto"],
+      "foreignKeys": [
+        {
+          "name": "fk_Pedido_has_Produto_Pedido",
+          "columns": ["Pedido_idPedido"],
+          "references": {
+            "table": "Pedido",
+            "columns": ["idPedido"],
+            "onDelete": "NO ACTION",
+            "onUpdate": "NO ACTION"
+          }
+        },
+        {
+          "name": "fk_Pedido_has_Produto_Produto",
+          "columns": ["Produto_idProduto"],
+          "references": {
+            "table": "Produto",
+            "columns": ["idProduto"],
+            "onDelete": "NO ACTION",
+            "onUpdate": "NO ACTION"
+          }
+        }
+      ],
+      "engine": "InnoDB"
+    }
+  ]
+}
