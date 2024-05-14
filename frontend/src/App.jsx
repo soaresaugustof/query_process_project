@@ -1,6 +1,7 @@
 import './App.css'
 import React, { useState } from 'react';
 import icon from './assets/icon.png'
+import axios from 'axios';
 
 const schema = {
   BD_Vendas: {
@@ -165,6 +166,7 @@ function App() {
   const [query, setQuery] = useState('');
   const [feedback, setFeedback] = useState('');
   const [displayFeedback, setDisplayFeedback] = useState('');
+  const [requestData, setRequestData] = useState('');
   const [displayHeading, setDisplayHeading] = useState('');
 
   const animateText = (text, setter) => {
@@ -183,22 +185,26 @@ function App() {
     setQuery(event.target.value);
   };
 
-  const handleSubmit = (event) => {
+  const handleSubmit = async (event) => {
     event.preventDefault();
     try {
       const parsedQuery = parseSQLQuery(query);
       const validationResult = validateQuery(parsedQuery, schema.BD_Vendas);
       const result = Array.isArray(validationResult) ? validationResult.join(', ') : validationResult;
 
-      setFeedback(result);  // This ensures feedback is always set to a defined result
-      console.log(result)
-      setDisplayFeedback(''); // Reset displayFeedback to avoid stale text
+      setFeedback(result);
+      console.log(result);
+      setDisplayFeedback('');
 
-      setTimeout(() => animateText(result, setDisplayFeedback), 500); // Delay the start of the pre text animation
+      setTimeout(() => animateText(result, setDisplayFeedback), 500);
+
+      const response = await axios.post('http://localhost:3000', parsedQuery);
+      console.log('Server response:', response.data);
+      setRequestData(request.data)
+
     } catch (error) {
       setFeedback(`Error parsing or validating the query: ${error.message}`);
-      setDisplayHeading('');
-      setDisplayFeedback('');  // Clear displayFeedback if there is an error
+      setDisplayFeedback('');
     }
   };
 
@@ -224,6 +230,7 @@ function App() {
           <pre style={{ color: feedback === " No errors found. The query is valid." ? 'lime' : 'red' }}>{displayFeedback}</pre>
         </div>
       )}
+      <> {requestData} </>
     </div>
   );
 }
