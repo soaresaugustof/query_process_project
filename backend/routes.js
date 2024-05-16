@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { applyHeuristics } from "./controller.js";
+import { applyHeuristics } from "./Controller.js";
 
 const router = Router();
 

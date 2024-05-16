@@ -1,24 +1,5 @@
-//import { createGraphService } from "./service";
 
-export function applyHeuristics(req, res){
-    const verifiedQuery = req.body;
-
-    // const {result, relationalAlgebra} = jsonToRelationalAlgebra(verifiedQuery);
-    const { tree, algebraExpression } = buildAlgebraExpression(verifiedQuery);
-
-    return res.status(200).json({ tree, algebraExpression });
-}
-
-function jsonToRelationalAlgebra(json) {
-    let algebraExpression = ''; // Inicia a expressão de álgebra relacional
-
-    // Regra 4: Montar árvore
-    algebraExpression += buildTree(json);
-
-    return algebraExpression;
-}
-
-function buildAlgebraExpression(json) {
+export function buildAlgebraExpression(json) {
     const { select, from, joins, where } = json;
 
     let tree = {};
@@ -61,38 +42,3 @@ function buildTreeRecursive(conditions, expression) {
 
     return rightExpression;
 }
-
-// Exemplo de JSON representando um comando SQL
-const json = {
-    select: ['idCliente', 'Nome', 'Email'],
-    from: 'Cliente',
-    joins: [
-        {
-            table: 'TipoCliente',
-            condition: [
-                {
-                    leftOperand: 'TipoCliente_idTipoCliente',
-                    operator: '=',
-                    rightOperand: 'idTipoCliente'
-                },
-                {
-                    leftOperand: 'Nome',
-                    operator: '=',
-                    rightOperand: 'John'
-                }
-            ]
-        }
-    ],
-    where: [
-        {
-            leftOperand: 'Nome',
-            operator: '=',
-            rightOperand: 'John'
-        }
-    ]
-};
-
-// Converter JSON para álgebra relacional
-// const { tree, algebraExpression } = buildAlgebraExpression(json);
-// console.log(tree);
-// console.log(algebraExpression);
