@@ -1,11 +1,12 @@
 //import { createGraphService } from "./service";
 
-export function createGraph(req, res){
-    const { verifiedQuery } = req.body;
+export function applyHeuristics(req, res){
+    const verifiedQuery = req.body;
 
-    const {result, relationalAlgebra} = jsonToRelationalAlgebra(verifiedQuery);
+    // const {result, relationalAlgebra} = jsonToRelationalAlgebra(verifiedQuery);
+    const { tree, algebraExpression } = buildAlgebraExpression(verifiedQuery);
 
-    return res.status(200).json(result);
+    return res.status(200).json({ tree, algebraExpression });
 }
 
 function jsonToRelationalAlgebra(json) {
@@ -92,6 +93,6 @@ const json = {
 };
 
 // Converter JSON para álgebra relacional
-const { tree, algebraExpression } = buildAlgebraExpression(json);
-console.log(tree);
-console.log(algebraExpression);
+// const { tree, algebraExpression } = buildAlgebraExpression(json);
+// console.log(tree);
+// console.log(algebraExpression);

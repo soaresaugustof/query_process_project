@@ -1,8 +1,8 @@
 import { Router } from "express";
-import { createGraph } from "./controller.js";
+import { applyHeuristics } from "./controller.js";
 
 const router = Router();
 
-router.post("/create-graph", createGraph);
+router.post("/apply-heuristics", applyHeuristics);
 
 export default router;
