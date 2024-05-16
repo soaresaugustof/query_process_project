@@ -1,7 +1,7 @@
-import './App.css'
-import React, { useState } from 'react';
-import icon from './assets/icon.png'
-import axios from 'axios';
+import './App.css';
+import { useState } from 'react';
+import icon from './assets/icon.png';
+import Tree from 'react-d3-tree';
 
 const schema = {
   BD_Vendas: {
@@ -42,7 +42,6 @@ const schema = {
 };
 
 function parseSQLQuery(query) {
-  // Improved regex patterns
   const regex = {
     select: /SELECT\s+(.+?)\s+FROM\s+/is,
     from: /FROM\s+([\w\s]+?)(?:\s+JOIN|\s+WHERE|$)/i,
@@ -50,25 +49,28 @@ function parseSQLQuery(query) {
     where: /WHERE\s+([\w\s\.\=\>\<\('\"]+)/i,
   };
 
-  // Helper function to parse the WHERE clause into a structured format
   function parseWhereCondition(condition) {
-    // Updated to handle quotes better and distinguish values from column names
-    const conditionRegex = /(\w+)\s*(=|>|<|>=|<=|<>)\s*('(?:\\.|[^'\\])*'|"(?:\\.|[^"\\])*"|\w+)/g;
+    const conditionRegex = /(\w+)\s*(=|>|<|>=|<=|<>)\s*('(?:\\.|[^'\\])*'|"(?:\\.|[^"\\])*"|\w+)?/g;
     let match;
     const conditions = [];
 
     while ((match = conditionRegex.exec(condition)) !== null) {
+      if (!match[3]) {
+        throw new Error(`Missing value for condition in WHERE clause: ${match[0].trim()}`);
+      }
+      if ((match[3].startsWith("'") && !match[3].endsWith("'")) || (match[3].startsWith('"') && !match[3].endsWith('"'))) {
+        throw new Error(` Incomplete string literal in WHERE clause: ${match[3]}`);
+      }
       conditions.push({
         leftOperand: match[1],
         operator: match[2],
         rightOperand: match[3],
-        isLiteral: match[3].startsWith("'") || match[3].startsWith('"') // Check if the right operand is a literal
+        isLiteral: match[3].startsWith("'") || match[3].startsWith('"')
       });
     }
     return conditions;
   }
 
-  // Extract different parts using the regular expressions
   const selectMatch = query.match(regex.select);
   const fromMatch = query.match(regex.from);
   const whereMatch = query.match(regex.where);
@@ -82,17 +84,12 @@ function parseSQLQuery(query) {
     });
   }
 
-  // Build the result object
-  const result = {
-    select: selectMatch
-      ? selectMatch[1].split(",").map((s) => s.trim())
-      : [],
+  return {
+    select: selectMatch ? selectMatch[1].split(",").map(s => s.trim()) : [],
     from: fromMatch ? fromMatch[1].trim() : null,
     joins: joins,
     where: whereMatch ? parseWhereCondition(whereMatch[1]) : [],
   };
-
-  return result;
 }
 
 // Example SQL query
@@ -162,51 +159,127 @@ function validateQuery(parsedQuery, schema) {
 const validationResult = validateQuery(parsedQuery, schema.BD_Vendas);
 console.log(validationResult);
 
+const Modal = ({ show, handleClose, children }) => {
+  return (
+    <div className={`modal ${show ? 'show' : ''}`}>
+      <div className="modal-content">
+        <span className="close" onClick={handleClose}>&times;</span>
+        {children}
+      </div>
+    </div>
+  );
+};
+
 function App() {
   const [query, setQuery] = useState('');
   const [feedback, setFeedback] = useState('');
   const [displayFeedback, setDisplayFeedback] = useState('');
-  const [requestData, setRequestData] = useState('');
-  const [displayHeading, setDisplayHeading] = useState('');
+  const [showModal, setShowModal] = useState(false);
 
   const animateText = (text, setter) => {
     let i = 0;
     const intervalId = setInterval(() => {
-      if (i < text.length - 1) { // Ensure it doesn't render the last character
-        setter(prev => prev + text[i]); // Append the character at the current index
-        i++; // Then increment the index
+      if (i < text.length - 1) {
+        setter(prev => prev + text[i]);
+        i++;
       } else {
-        clearInterval(intervalId); // Stop the interval when reaching the second to last character
+        clearInterval(intervalId);
       }
-    }, 50); // Adjust the speed of typing here
+    }, 50);
   };
 
   const handleQueryChange = (event) => {
     setQuery(event.target.value);
   };
 
-  const handleSubmit = async (event) => {
+  const handleSubmit = (event) => {
     event.preventDefault();
+    setFeedback('');
+    setDisplayFeedback('');
+
     try {
       const parsedQuery = parseSQLQuery(query);
       const validationResult = validateQuery(parsedQuery, schema.BD_Vendas);
       const result = Array.isArray(validationResult) ? validationResult.join(', ') : validationResult;
 
       setFeedback(result);
-      console.log(result);
-      setDisplayFeedback('');
-
       setTimeout(() => animateText(result, setDisplayFeedback), 500);
-
-      const response = await axios.post('http://localhost:3000', parsedQuery);
-      console.log('Server response:', response.data);
-      setRequestData(request.data)
-
     } catch (error) {
-      setFeedback(`Error parsing or validating the query: ${error.message}`);
-      setDisplayFeedback('');
+      setFeedback(` ${error.message}`);
+      animateText(` ${error.message}`, setDisplayFeedback);
     }
   };
+
+  const openModal = () => {
+    setShowModal(true);
+  };
+
+  const closeModal = () => {
+    setShowModal(false);
+  };
+
+  // Example tree data for the graph
+  const treeData = [
+    {
+      name: 'Database',
+      children: [
+        {
+          name: 'Tables',
+          children: [
+            {
+              name: 'Client',
+              children: [
+                { name: 'idClient' },
+                { name: 'Name' },
+                { name: 'Email' },
+                { name: 'Nascimento' },
+                { name: 'Senha' },
+                { name: 'DataRegistro' },
+                { name: 'TipoCliente_idTipoCliente' }
+              ]
+            },
+            {
+              name: 'TipoCliente',
+              children: [
+                { name: 'idTipoCliente' },
+                { name: 'Description' }
+              ]
+            },
+            {
+              name: 'Product',
+              children: [
+                { name: 'idProduct' },
+                { name: 'Name' },
+                { name: 'Description' },
+                { name: 'Price' },
+                { name: 'QuantEstoque' },
+                { name: 'Categoria_idCategoria' }
+              ]
+            },
+            {
+              name: 'Category',
+              children: [
+                { name: 'idCategoria' },
+                { name: 'Description' }
+              ]
+            }
+          ]
+        },
+        {
+          name: 'Relationships',
+          children: [
+            {
+              name: 'Foreign Keys',
+              children: [
+                { name: 'Client.TipoCliente_idTipoCliente -> TipoCliente.idTipoCliente' },
+                { name: 'Product.Categoria_idCategoria -> Category.idCategoria' }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ];
 
   return (
     <div className="App">
@@ -226,13 +299,22 @@ function App() {
         <button type="submit" style={{ width: '30%', marginTop: 20 }} className='button-text'>Validate</button>
       </form>
       {feedback && (
-        <div className="typewriter" style={{ marginTop: 50 }}>
+        <div className="typewriter" style={{ marginTop: 20 }}>
           <pre style={{ color: feedback === " No errors found. The query is valid." ? 'lime' : 'red' }}>{displayFeedback}</pre>
+          {feedback === " No errors found. The query is valid." && (
+            <button className='button-text' style={{backgroundColor: 'transparent', border: "none", color: 'lime'}} onClick={openModal}>
+              (View graph)
+            </button>
+          )}
         </div>
       )}
-      <> {requestData} </>
+      <Modal show={showModal} handleClose={closeModal}>
+          <Tree data={treeData} orientation="vertical" />
+      </Modal>
     </div>
   );
 }
+
+
 
 export default App;
